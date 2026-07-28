@@ -5,31 +5,31 @@ get_subdomain_info() {
     local domain="$1"
     local subdomain="$2"
     local target="${subdomain}.${domain}"
-    local result
+    local answer_line
+    local record_type
+    local destination
 
-    result=$(dig "$target" | awk '/^;; ANSWER SECTION:/{getline; print; exit}')
+    answer_line=$(dig "$target" +noall +answer 2>/dev/null | awk 'NF {print; exit}')
 
-    if [ -z "$result" ]; then
+    if [ -z "$answer_line" ]; then
         return
     fi
 
-    local record_type
-    local destination
-    record_type=$(echo "$result" | awk '{print $4}')
-    destination=$(echo "$result" | awk '{print $5}')
+    record_type=$(echo "$answer_line" | awk '{print $4}')
+    destination=$(echo "$answer_line" | awk '{print $5}')
 
     echo "The subdomain $subdomain is a $record_type record and points to $destination"
 }
 
-if [ $# -eq 1 ]; then
-    domain=$1
+if [ "$#" -eq 1 ]; then
+    domain="$1"
     get_subdomain_info "$domain" "www"
     get_subdomain_info "$domain" "lb-01"
     get_subdomain_info "$domain" "web-01"
     get_subdomain_info "$domain" "web-02"
-elif [ $# -eq 2 ]; then
-    domain=$1
-    subdomain=$2
+elif [ "$#" -eq 2 ]; then
+    domain="$1"
+    subdomain="$2"
     get_subdomain_info "$domain" "$subdomain"
 fi
 
