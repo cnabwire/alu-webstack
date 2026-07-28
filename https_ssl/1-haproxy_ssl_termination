@@ -11,7 +11,7 @@ global
     ca-base /etc/ssl/certs
     crt-base /etc/ssl/private
     ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
-    ssl-default-bind-options ssl-min-ver TLSv1.2
+    ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
 
 defaults
     log global
@@ -22,19 +22,18 @@ defaults
     timeout client 50000
     timeout server 50000
 
-frontend http-in
+frontend balancer_http_in
     bind *:80
     redirect scheme https code 301 if !{ ssl_fc }
 
-frontend https-in
-    bind *:443 ssl crt /etc/haproxy/certs/www.pem
-    reqadd X-Forwarded-Proto:\ https
-    default_backend webservers
-
-backend webservers
-    balance roundrobin
+frontend balancer_https_in
+    bind *:443 ssl crt /etc/ssl/certs/ha_proxy_ssl.pem
     option forwardfor
+    default_backend balancer_http_out
+
+backend balancer_http_out
+    balance roundrobin
     http-response set-header X-Served-By %[srv_name]
-    server 6372-web-01 18.207.206.213:80 check
-    server 6372-web-02 54.211.113.26:80 check
+    server web-01 18.207.206.213:80 check
+    server web-02 54.211.113.26:80 check
 
