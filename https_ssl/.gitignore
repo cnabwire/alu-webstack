@@ -1,0 +1,22 @@
+cat > .gitignore << 'EOF'
+# SSH Keys
+*.pem
+*.key
+school
+school.pub
+*.ppk
+
+# Private keys
+*_rsa
+*_dsa
+*_ecdsa
+*_ed25519
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+EOF
