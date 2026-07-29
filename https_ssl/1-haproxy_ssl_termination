@@ -7,11 +7,11 @@ depth=2 C = US, O = ISRG, CN = Root YR
 verify return:1
 depth=1 C = US, O = Let's Encrypt, CN = YR2
 verify return:1
-depth=0 CN = nadiv.tech
+depth=0 CN = frame-shop-nrb.tech
 verify return:1
 ---
 Certificate chain
- 0 s:CN = nadiv.tech
+ 0 s:CN = frame-shop-nrb.tech
    i:C = US, O = Let's Encrypt, CN = YR2
  1 s:C = US, O = Let's Encrypt, CN = YR2
    i:C = US, O = ISRG, CN = Root YR
@@ -48,7 +48,7 @@ WrMe8OUqQsV7dEzXQ5Druk8WlbsfZ5RFsfXMZUDfgUDIDYvIGfe2ZVZGLAT/8wTC
 YrPyneDMwr6sVboHKAhe3tSOhbcGAW1kfj/pfFZ9/2L2EMFbAZB1MMsq0x5cWAnR
 w8OYZkWQE2KO6Hc0/41K3N73FGgVaSOVPKoDFCvV73Bdp0Q=
 -----END CERTIFICATE-----
-subject=CN = nadiv.tech
+subject=CN = frame-shop-nrb.tech
 
 issuer=C = US, O = Let's Encrypt, CN = YR2
 
@@ -112,14 +112,17 @@ defaults
 
 frontend balancer_http_in
     bind *:80
+    redirect scheme https code 301 if ! { ssl_fc }
+
+frontend balancer_https_in
+    bind *:443 ssl crt /etc/haproxy/certs/frame-shop-nrb.tech.pem
+    option forwardfor
     default_backend balancer_http_out
 
 backend balancer_http_out
     balance roundrobin
+    option httpchk GET /
+    http-check expect status 200
     server web-01 10.227.126.233:80 check
     server web-02 10.227.55.229:80 check
-
-
-
-frontend balancer_https_in
-    bind *:443 ssl crt /etc/haproxy/certs/nadiv.tech.pem
+    http-response set-header X-Served-By %[srv_name]
