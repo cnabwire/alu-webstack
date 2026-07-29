@@ -1,39 +1,125 @@
-global
-    log /dev/log local0
-    log /dev/log local1 notice
-    chroot /var/lib/haproxy
-    stats socket /run/haproxy/admin.sock mode 660 level admin
-    stats timeout 30s
-    user haproxy
-    group haproxy
-    daemon
+ubuntu@7172-lb-01:~$ echo | openssl s_client -connect 13.217.160.59:443
+CONNECTED(00000003)
+Can't use SSL_get_servername
+depth=3 C = US, O = Internet Security Research Group, CN = ISRG Root X1
+verify return:1
+depth=2 C = US, O = ISRG, CN = Root YR
+verify return:1
+depth=1 C = US, O = Let's Encrypt, CN = YR2
+verify return:1
+depth=0 CN = nadiv.tech
+verify return:1
+---
+Certificate chain
+ 0 s:CN = nadiv.tech
+   i:C = US, O = Let's Encrypt, CN = YR2
+ 1 s:C = US, O = Let's Encrypt, CN = YR2
+   i:C = US, O = ISRG, CN = Root YR
+ 2 s:C = US, O = ISRG, CN = Root YR
+   i:C = US, O = Internet Security Research Group, CN = ISRG Root X1
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIIE/zCCA+egAwIBAgISBa1XLH03J2lLGw0QuE9zA0lYMA0GCSqGSIb3DQEBCwUA
+MDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQwwCgYDVQQD
+EwNZUjIwHhcNMjYwNzE2MTQzNzAxWhcNMjYxMDE0MTQzNzAwWjAVMRMwEQYDVQQD
+EwpuYWRpdi50ZWNoMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5VN4
+4YU9r7Vidj5+cgXd+6LKBxboAD4t6NHT05HDcR0iIl0uG5TxARyQENfcWfNOrFpL
+ceGLuyyrpgFaSUB+UzWVVEf38L/Nxl+K8w62t7NUKXlfHMPTVXs7H7aQRZJ4n+un
+GKuZKv9O3MZP6/3/4CiNRm787J5hSheLMMl8Gb+2tIFhcQPsVad+gw2IxD5KvX7J
+oq+5zGyscymujmX3usTG5mq6b5SJ/uY3qA1KERUT1TtlOutG2AnVO1NUmmhtPM6D
+3T/0v0kMepRvwIbb9qeSKArrxBDwUFB3S92NmBZQrBne++nq3SJqK30HvpnqCsDK
+JSEdDjx6tk9WMMeR1wIDAQABo4ICKTCCAiUwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFNnvuS+FfcmH
+g1AFJHFB1HTLReFqMB8GA1UdIwQYMBaAFEAVLSZ57TIgnt+ach3WMh+BDIEMMDMG
+CCsGAQUFBwEBBCcwJTAjBggrBgEFBQcwAoYXaHR0cDovL3lyMi5pLmxlbmNyLm9y
+Zy8wJQYDVR0RBB4wHIIKbmFkaXYudGVjaIIOd3d3Lm5hZGl2LnRlY2gwEwYDVR0g
+BAwwCjAIBgZngQwBAgEwLgYDVR0fBCcwJTAjoCGgH4YdaHR0cDovL3lyMi5jLmxl
+bmNyLm9yZy84OS5jcmwwggENBgorBgEEAdZ5AgQCBIH+BIH7APkAdgDCMX5XRRmj
+Re5/ON6ykEHrx8IhWiK/f9W1rXaa2Q5SzQAAAZ9rkZfVAAAEAwBHMEUCIB0Htotm
+VIRegaV0jXybugrKe8UovYKgYONqgzDo+O8TAiEAsPWSu8+9DpHAwUfchcyMBPjF
+WP8drP+KwWKk5QSi/d8AfwCoJsvjCsY1EkZTP+Bl8U8Z2W4ZCBPEHdlteQCzEjxV
+JwAAAZ9rkZrAAAgAAAUAFG2iAQQDAEgwRgIhAISsagaJCLyLMSE7tQpvvcEwAMsm
+hLdD9bJhc3iJuTcVAiEA5T2hUCXpdpyQafqrMKthQ+rc7XFQLh+zBDQjnDM3bZww
+DQYJKoZIhvcNAQELBQADggEBAAGdBQ83mKrnH4Ft8dbZFZEEO2MRQ3XZmn0tEbC6
+h+pRtOu7wlRRB1hwEIf8e59nlinff8TT+3eB4stRvhP+5AKJkqZL+8b+xag9J1FZ
+ErTz7aRqwHDMrcN30p7595btfaJ3L3m8DZpalIaLBkRyDKsPcoW8Ag58APVP/1Av
+WrMe8OUqQsV7dEzXQ5Druk8WlbsfZ5RFsfXMZUDfgUDIDYvIGfe2ZVZGLAT/8wTC
+YrPyneDMwr6sVboHKAhe3tSOhbcGAW1kfj/pfFZ9/2L2EMFbAZB1MMsq0x5cWAnR
+w8OYZkWQE2KO6Hc0/41K3N73FGgVaSOVPKoDFCvV73Bdp0Q=
+-----END CERTIFICATE-----
+subject=CN = nadiv.tech
 
-    ca-base /etc/ssl/certs
-    crt-base /etc/ssl/private
-    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
-    ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+issuer=C = US, O = Let's Encrypt, CN = YR2
+
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 4607 bytes and written 347 bytes
+Verification: OK
+---
+New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 0 (ok)
+---
+DONE
+ubuntu@7172-lb-01:~$ sudo nano /etc/haproxy/haproxy.cfg
+
+  GNU nano 4.8                                                           /etc/haproxy/haproxy.cfg                                                                      
+global
+        log /dev/log    local0
+        log /dev/log    local1 notice
+        chroot /var/lib/haproxy
+        stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+        stats timeout 30s
+        user haproxy
+        group haproxy
+        daemon
+
+        # Default SSL material locations
+        ca-base /etc/ssl/certs
+        crt-base /etc/ssl/private
+
+        # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate
+        ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACH>
+        ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+        ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
 
 defaults
-    log global
-    mode http
-    option httplog
-    option dontlognull
-    timeout connect 5000
-    timeout client 50000
-    timeout server 50000
+        log     global
+        mode    http
+        option  httplog
+        option  dontlognull
+        timeout connect 5000
+        timeout client  50000
+        timeout server  50000
+        errorfile 400 /etc/haproxy/errors/400.http
+        errorfile 403 /etc/haproxy/errors/403.http
+        errorfile 408 /etc/haproxy/errors/408.http
+        errorfile 500 /etc/haproxy/errors/500.http
+        errorfile 502 /etc/haproxy/errors/502.http
+        errorfile 503 /etc/haproxy/errors/503.http
+        errorfile 504 /etc/haproxy/errors/504.http
+
 
 frontend balancer_http_in
     bind *:80
-    redirect scheme https code 301 if !{ ssl_fc }
-
-frontend balancer_https_in
-    bind *:443 ssl crt /etc/ssl/certs/ha_proxy_ssl.pem
-    option forwardfor
     default_backend balancer_http_out
 
 backend balancer_http_out
     balance roundrobin
-    http-response set-header X-Served-By %[srv_name]
-    server web-01 18.207.206.213:80 check
-    server web-02 54.211.113.26:80 check
+    server web-01 10.227.126.233:80 check
+    server web-02 10.227.55.229:80 check
 
+
+
+frontend balancer_https_in
+    bind *:443 ssl crt /etc/haproxy/certs/nadiv.tech.pem
