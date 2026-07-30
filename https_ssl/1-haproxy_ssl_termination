@@ -1,56 +1,8 @@
-ubuntu@7172-lb-01:~$ echo | openssl s_client -connect 13.221.160.161:443
-CONNECTED(00000003)
-Can't use SSL_get_servername
-depth=3 C = US, O = Internet Security Research Group, CN = ISRG Root X1
-verify return:1
-depth=2 C = US, O = ISRG, CN = Root YR
-verify return:1
-depth=1 C = US, O = Let's Encrypt, CN = YR2
-verify return:1
-depth=0 CN = nadiv.tech
-verify return:1
----
-Certificate chain
- 0 s:CN = frame-shop-nrb.tech
-   i:C = US, O = Let's Encrypt, CN = YR2
- 1 s:C = US, O = Let's Encrypt, CN = YR2
-   i:C = US, O = ISRG, CN = Root YR
- 2 s:C = US, O = ISRG, CN = Root YR
-   i:C = US, O = Internet Security Research Group, CN = ISRG Root X1
----
-Server certificate
-
-subject=CN = frame-shop-nrb.tech
-
-issuer=C = US, O = Let's Encrypt, CN = YR2
-
----
-No client certificate CA names sent
-Peer signing digest: SHA256
-Peer signature type: RSA-PSS
-Server Temp Key: X25519, 253 bits
----
-SSL handshake has read 4607 bytes and written 347 bytes
-Verification: OK
----
-New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256
-Server public key is 2048 bit
-Secure Renegotiation IS NOT supported
-Compression: NONE
-Expansion: NONE
-No ALPN negotiated
-Early data was not sent
-Verify return code: 0 (ok)
----
-DONE
-ubuntu@7172-lb-01:~$ sudo nano /etc/haproxy/haproxy.cfg
-
-  GNU nano 4.8                                                           /etc/haproxy/haproxy.cfg                                                                      
 global
         log /dev/log    local0
         log /dev/log    local1 notice
         chroot /var/lib/haproxy
-        stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+        stats socket /run/haproxy/admin.sock mode 660 level admin
         stats timeout 30s
         user haproxy
         group haproxy
@@ -61,7 +13,7 @@ global
         crt-base /etc/ssl/private
 
         # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate
-        ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACH>
+        ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
         ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
         ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
 
@@ -81,17 +33,40 @@ defaults
         errorfile 503 /etc/haproxy/errors/503.http
         errorfile 504 /etc/haproxy/errors/504.http
 
+###########################################
+#
+# HAProxy Stats page
+#
+###########################################
+listen stats
+  bind *:9090
+  mode  http
+  maxconn  10
+  stats  enable
+  stats  hide-version
+  stats  realm Haproxy\ Statistics
+  stats  uri /
+  stats  auth admin:admin
 
-frontend balancer_http_in
-    bind *:80
-    default_backend balancer_http_out
+frontend ALL
+        bind *:80
+        bind *:443 ssl crt /etc/ssl_cert/abimbolaronald.tech/abimbolaronald.tech.pem
+        mode http
 
-backend balancer_http_out
-    balance roundrobin
-    server web-01 18.207.206.213:80 check
-    server web-02 54.211.113.26:80 check
+        # Define path for lets encrypt
+        acl is_letsencrypt path_beg -i /.well-known/acme-challenge/
 
+        # Redirect all requests on port 80(http) to 443(https)
+        # We only have one exception which is letsencrypt - because letsencrypt needs to hit us on port 80 to perform its job
+        redirect scheme https code 301 if !{ ssl_fc } !is_letsencrypt
 
+        use_backend letsencrypt if is_letsencrypt
+        default_backend lb-backend
 
-frontend balancer_https_in
-    bind *:443 ssl crt /etc/haproxy/certs/nadiv.tech.pem
+backend letsencrypt
+        server letsencrypt 127.0.0.1:8888
+ 
+backend lb-backend
+        balance roundrobin
+        server web-01 54.234.216.53:80 check
+        server web-02 34.228.165.232:80 check
